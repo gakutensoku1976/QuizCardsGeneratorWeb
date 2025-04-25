@@ -73,7 +73,7 @@ def create_image(title, question, answer, background_image, brightness, contrast
     question_height = int(height * 0.50)
     answer_height = int(height * 0.20)
 
-    font_path = 'BIZ-UDGOTHICR.ttc'
+    font_path = 'ipaexg.ttf'
 
     font_title = ImageFont.truetype(font_path, title_size)
     font_question = ImageFont.truetype(font_path, question_size)
