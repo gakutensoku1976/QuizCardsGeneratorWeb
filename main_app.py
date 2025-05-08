@@ -1,47 +1,21 @@
 import streamlit as st
 from PIL import Image, ImageEnhance, ImageFilter, ImageDraw, ImageFont
+import os
 
 # フォントの表示名とファイル名の対応
 FONT_OPTIONS = {
     "Noto Sans": "NotoSansJP-Regular.ttf",
     "BIZ UDP ゴシック": "BIZUDPGothic-Regular.ttf",
-    "Kosugi Maru": "KosugiMaru-Regular.ttf"
+    "Kosugi Maru": "KosugiMaru-Regular.ttf",
 }
 
 # 各フォントのライセンス情報
-FONT_LICENSES = {
-    "Noto Sans": """
-### Noto Sans Japanese
-**License**  
-Copyright 2014–2021 Adobe (http://www.adobe.com/), with Reserved Font Name 'Source'  
-This Font Software is licensed under the **SIL Open Font License, Version 1.1**  
-More: [https://openfontlicense.org](https://openfontlicense.org)
-
----
-
-**SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007**
-""",
-    "BIZ UDP ゴシック": """
-### BIZ UDPGothic
-**Designed by** Type Bank Co., Morisawa Inc.  
-**License**  
-Copyright 2022 The BIZ UDGothic Project Authors  
-(https://github.com/googlefonts/morisawa-biz-ud-mincho)  
-This Font Software is licensed under the **SIL Open Font License, Version 1.1**  
-More: [https://openfontlicense.org](https://openfontlicense.org)
-
----
-
-**SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007**
-""",
-    "Kosugi Maru": """
-### Kosugi Maru
-**Designed by** MOTOYA  
-**License**  
-Apache License, Version 2.0, January 2004  
-More: [http://www.apache.org/licenses/](http://www.apache.org/licenses/)
-"""
+FONT_LICENSE_URLS = {
+    "Noto Sans": "https://fonts.google.com/noto/specimen/Noto+Sans+JP/license?lang=ja_Jpan",
+    "BIZ UDP ゴシック": "https://fonts.google.com/specimen/BIZ+UDPGothic/license?query=BIZ+UDP&lang=ja_Jpan",
+    "Kosugi Maru": "https://fonts.google.com/specimen/Kosugi+Maru/license?query=Kosugi+Maru&lang=ja_Jpan",
 }
+
 
 def wrap_text_japanese(text, font, max_width, draw):
     lines = []
@@ -59,7 +33,18 @@ def wrap_text_japanese(text, font, max_width, draw):
         lines.append(line)
     return lines
 
-def draw_multiline(draw, text, font, area_top, area_height, x_margin, max_width, fill, outline_fill=None):
+
+def draw_multiline(
+    draw,
+    text,
+    font,
+    area_top,
+    area_height,
+    x_margin,
+    max_width,
+    fill,
+    outline_fill=None,
+):
     line_spacing_ratio = 1.4
     lines = wrap_text_japanese(text, font, max_width, draw)
     base_line_height = font.getbbox("あ")[3]
@@ -71,20 +56,38 @@ def draw_multiline(draw, text, font, area_top, area_height, x_margin, max_width,
         y = y_start + i * line_spacing
         x = x_margin
         if outline_fill:
-            offsets = [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]
+            offsets = [
+                (-1, 0),
+                (1, 0),
+                (0, -1),
+                (0, 1),
+                (-1, -1),
+                (-1, 1),
+                (1, -1),
+                (1, 1),
+            ]
             for dx, dy in offsets:
                 draw.text((x + dx, y + dy), line, font=font, fill=outline_fill)
         draw.text((x, y), line, font=font, fill=fill)
 
-def create_image(background_image, brightness, contrast, blur,
-                 title_text_color, title_outline_color,
-                 question_text_color, question_outline_color,
-                 answer_text_color, answer_outline_color):
+
+def create_image(
+    background_image,
+    brightness,
+    contrast,
+    blur,
+    title_text_color,
+    title_outline_color,
+    question_text_color,
+    question_outline_color,
+    answer_text_color,
+    answer_outline_color,
+    title_size,
+    question_size,
+    answer_size,
+):
     width = 1200
     height = 630
-    title_size = 42
-    question_size = 36
-    answer_size = 36
     x_margin = 30
 
     background = background_image.convert("RGB").resize((width, height))
@@ -110,15 +113,42 @@ def create_image(background_image, brightness, contrast, blur,
     question_height = int(height * 0.50)
     answer_height = int(height * 0.20)
 
-    draw_multiline(draw, st.session_state.title, font_title, header_height, title_height,
-                   x_margin, max_text_width, title_text_color, title_outline_color)
-    draw_multiline(draw, st.session_state.question, font_question, header_height + title_height,
-                   question_height, x_margin, max_text_width, question_text_color, question_outline_color)
-    draw_multiline(draw, st.session_state.answer, font_answer,
-                   header_height + title_height + question_height, answer_height,
-                   x_margin, max_text_width, answer_text_color, answer_outline_color)
+    draw_multiline(
+        draw,
+        st.session_state.title,
+        font_title,
+        header_height,
+        title_height,
+        x_margin,
+        max_text_width,
+        title_text_color,
+        title_outline_color,
+    )
+    draw_multiline(
+        draw,
+        st.session_state.question,
+        font_question,
+        header_height + title_height,
+        question_height,
+        x_margin,
+        max_text_width,
+        question_text_color,
+        question_outline_color,
+    )
+    draw_multiline(
+        draw,
+        st.session_state.answer,
+        font_answer,
+        header_height + title_height + question_height,
+        answer_height,
+        x_margin,
+        max_text_width,
+        answer_text_color,
+        answer_outline_color,
+    )
 
     return background
+
 
 # ------------------------------------------
 # Streamlitアプリ本体
@@ -139,7 +169,9 @@ if "answer" not in st.session_state:
 
 # 背景画像アップロード
 st.sidebar.header("背景画像アップロード")
-uploaded_file = st.sidebar.file_uploader("背景画像を選択してください", type=["jpg", "jpeg", "png"])
+uploaded_file = st.sidebar.file_uploader(
+    "背景画像を選択してください", type=["jpg", "jpeg", "png"]
+)
 if uploaded_file is not None:
     image = Image.open(uploaded_file)
     st.session_state.background_image = image
@@ -152,7 +184,8 @@ left, center, right = st.columns([1, 2, 1])
 with center:
     st.image(st.session_state.background_image, caption="背景画像", width=352)
 
-# クイズ入力
+
+# クイズ内容入力
 st.sidebar.header("クイズ内容入力")
 title_input = st.sidebar.text_input("タイトル", value=st.session_state.title)
 question_input = st.sidebar.text_input("問題文", value=st.session_state.question)
@@ -164,46 +197,44 @@ if st.sidebar.button("テキストを反映して再描画"):
     st.session_state.answer = answer_input
 
 
-FONT_LICENSE_URLS = {
-    "Noto Sans": "https://fonts.google.com/noto/specimen/Noto+Sans+JP/license?lang=ja_Jpan",
-    "BIZ UDP ゴシック": "https://fonts.google.com/specimen/BIZ+UDPGothic/license?query=BIZ+UDP&lang=ja_Jpan",
-    "Kosugi Maru": "https://fonts.google.com/specimen/Kosugi+Maru/license?query=Kosugi+Maru&lang=ja_Jpan"
-}
-
-# サイドバー：フォント選択とライセンスリンク
+# フォント選択とライセンスリンク
 st.sidebar.header("フォント選択")
-
 selected_font_display_name = st.sidebar.selectbox(
     "フォントを選択してください",
     options=list(FONT_OPTIONS.keys()),
     index=list(FONT_OPTIONS.keys()).index(st.session_state.selected_font_display_name),
-    key="font_dropdown"
+    key="font_dropdown",
 )
 st.session_state.selected_font_display_name = selected_font_display_name
 
-# ライセンスリンク（選択の直下に表示）
+# ライセンスリンクを下に表示
 license_url = FONT_LICENSE_URLS[selected_font_display_name]
 st.sidebar.markdown(
     f'<a href="{license_url}" target="_blank">🔗 このフォントのライセンスを見る</a>',
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
+# フォントサイズ設定
+st.sidebar.header("フォントサイズ設定")
+title_size = st.sidebar.slider("タイトル", 10, 100, 42)
+question_size = st.sidebar.slider("問題文", 10, 100, 36)
+answer_size = st.sidebar.slider("答え", 10, 100, 36)
 
 # 色設定
 st.sidebar.header("文字色・縁取り色設定")
 col1, col2 = st.sidebar.columns(2)
 with col1:
-    title_text_color = st.color_picker('タイトル文字色', '#FFFFFF')
+    title_text_color = st.color_picker("タイトル文字色", "#FFFFFF")
 with col2:
-    title_outline_color = st.color_picker('タイトル縁取り色', '#000000')
+    title_outline_color = st.color_picker("タイトル縁取り色", "#000000")
 with col1:
-    question_text_color = st.color_picker('問題文文字色', '#FFFFFF')
+    question_text_color = st.color_picker("問題文文字色", "#FFFFFF")
 with col2:
-    question_outline_color = st.color_picker('問題文縁取り色', '#000000')
+    question_outline_color = st.color_picker("問題文縁取り色", "#000000")
 with col1:
-    answer_text_color = st.color_picker('答え文字色', '#FFFF00')
+    answer_text_color = st.color_picker("答え文字色", "#FFFF00")
 with col2:
-    answer_outline_color = st.color_picker('答え縁取り色', '#000000')
+    answer_outline_color = st.color_picker("答え縁取り色", "#000000")
 
 # 画像調整
 st.sidebar.header("画像調整")
@@ -211,14 +242,20 @@ brightness = st.sidebar.slider("明るさ", 0.0, 2.0, 1.0, 0.05)
 contrast = st.sidebar.slider("コントラスト", 0.0, 2.0, 1.0, 0.05)
 blur = st.sidebar.slider("ぼかし", 0.0, 32.0, 0.0, 1.0)
 
-# 出力画像
+# 出力画像作成と表示
 output_image = create_image(
     st.session_state.background_image,
     brightness,
     contrast,
     blur,
-    title_text_color, title_outline_color,
-    question_text_color, question_outline_color,
-    answer_text_color, answer_outline_color
+    title_text_color,
+    title_outline_color,
+    question_text_color,
+    question_outline_color,
+    answer_text_color,
+    answer_outline_color,
+    title_size,
+    question_size,
+    answer_size,
 )
 st.image(output_image, caption="Quiz Card")
