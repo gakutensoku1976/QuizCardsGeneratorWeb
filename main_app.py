@@ -1,6 +1,8 @@
 import streamlit as st
 from PIL import Image, ImageEnhance, ImageFilter, ImageDraw, ImageFont
 import os
+import io
+import json
 
 # フォントの表示名とファイル名の対応
 FONT_OPTIONS = {
@@ -157,6 +159,7 @@ uploaded_file = st.sidebar.file_uploader("背景画像を選択してくださ�
 if uploaded_file is not None:
     image = Image.open(uploaded_file)
     st.session_state.background_image = image
+    st.session_state.background_image_filename = uploaded_file.name
 
 if st.session_state.background_image is None:
     st.warning("背景画像をアップロードしてください。")
@@ -256,4 +259,60 @@ output_image = create_image(
     question_size,
     answer_size,
 )
+
 st.image(output_image, caption="Quiz Card")
+
+img_buffer = io.BytesIO()
+output_image.save(img_buffer, format="PNG")
+img_buffer.seek(0)
+
+st.download_button(
+    label="画像ダウンロード",
+    data=img_buffer,
+    file_name="quiz_card.png",
+    mime="image/png"
+)
+
+# 設定情報を辞書にまとめる
+settings_dict = {
+    "background_image_filename": st.session_state.get("background_image_filename", "unknown"),
+    "title": st.session_state.title,
+    "question": st.session_state.question,
+    "answer": st.session_state.answer,
+    "font": st.session_state.selected_font_display_name,
+    "font_size": {
+        "title": title_size,
+        "question": question_size,
+        "answer": answer_size,
+    },
+    "colors": {
+        "title_text": title_text_color,
+        "title_outline": title_outline_color if title_use_outline else None,
+        "question_text": question_text_color,
+        "question_outline": question_outline_color if question_use_outline else None,
+        "answer_text": answer_text_color,
+        "answer_outline": answer_outline_color if answer_use_outline else None,
+    },
+    "outline_flags": {
+        "title": title_use_outline,
+        "question": question_use_outline,
+        "answer": answer_use_outline,
+    },
+    "adjustments": {
+        "brightness": brightness,
+        "contrast": contrast,
+        "blur": blur,
+    }
+}
+
+# JSONに変換
+settings_json = json.dumps(settings_dict, ensure_ascii=False, indent=2)
+
+# サイドバーにダウンロードボタンを追加
+st.sidebar.markdown("---")
+st.sidebar.download_button(
+    label="🔽 設定をJSONでダウンロード",
+    data=settings_json,
+    file_name="quiz_card_settings.json",
+    mime="application/json"
+)
