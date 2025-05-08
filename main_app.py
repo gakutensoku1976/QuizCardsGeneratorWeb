@@ -1,6 +1,48 @@
 import streamlit as st
 from PIL import Image, ImageEnhance, ImageFilter, ImageDraw, ImageFont
 
+# フォントの表示名とファイル名の対応
+FONT_OPTIONS = {
+    "Noto Sans": "NotoSansJP-Regular.ttf",
+    "BIZ UDP ゴシック": "BIZUDPGothic-Regular.ttf",
+    "Kosugi Maru": "KosugiMaru-Regular.ttf"
+}
+
+# 各フォントのライセンス情報
+FONT_LICENSES = {
+    "Noto Sans": """
+### Noto Sans Japanese
+**License**  
+Copyright 2014–2021 Adobe (http://www.adobe.com/), with Reserved Font Name 'Source'  
+This Font Software is licensed under the **SIL Open Font License, Version 1.1**  
+More: [https://openfontlicense.org](https://openfontlicense.org)
+
+---
+
+**SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007**
+""",
+    "BIZ UDP ゴシック": """
+### BIZ UDPGothic
+**Designed by** Type Bank Co., Morisawa Inc.  
+**License**  
+Copyright 2022 The BIZ UDGothic Project Authors  
+(https://github.com/googlefonts/morisawa-biz-ud-mincho)  
+This Font Software is licensed under the **SIL Open Font License, Version 1.1**  
+More: [https://openfontlicense.org](https://openfontlicense.org)
+
+---
+
+**SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007**
+""",
+    "Kosugi Maru": """
+### Kosugi Maru
+**Designed by** MOTOYA  
+**License**  
+Apache License, Version 2.0, January 2004  
+More: [http://www.apache.org/licenses/](http://www.apache.org/licenses/)
+"""
+}
+
 def wrap_text_japanese(text, font, max_width, draw):
     lines = []
     line = ""
@@ -55,7 +97,8 @@ def create_image(background_image, brightness, contrast, blur,
         background = background.filter(ImageFilter.GaussianBlur(radius=blur))
 
     draw = ImageDraw.Draw(background)
-    font_path = "ipaexg.ttf"
+
+    font_path = FONT_OPTIONS[st.session_state.selected_font_display_name]
     font_title = ImageFont.truetype(font_path, title_size)
     font_question = ImageFont.truetype(font_path, question_size)
     font_answer = ImageFont.truetype(font_path, answer_size)
@@ -83,30 +126,10 @@ def create_image(background_image, brightness, contrast, blur,
 
 st.title("QuizCardGenerator")
 
-# セッションに背景画像が保存されているか確認
 if "background_image" not in st.session_state:
     st.session_state.background_image = None
-
-# 背景画像アップロード欄
-st.sidebar.header("背景画像アップロード")
-uploaded_file = st.sidebar.file_uploader("背景画像を選択してください", type=["jpg", "jpeg", "png"])
-
-# 新しい画像がアップロードされたらセッションに保存
-if uploaded_file is not None:
-    image = Image.open(uploaded_file)
-    st.session_state.background_image = image
-
-# 背景画像がまだ選択されていない場合
-if st.session_state.background_image is None:
-    st.warning("背景画像をアップロードしてください。")
-    st.stop()  # 背景が無い場合はここでストップ
-
-# 背景画像がある場合、中央に表示
-left, center, right = st.columns([1,2,1])
-with center:
-    st.image(st.session_state.background_image, caption="背景画像", width=352)
-
-# クイズの初期値設定
+if "selected_font_display_name" not in st.session_state:
+    st.session_state.selected_font_display_name = list(FONT_OPTIONS.keys())[0]
 if "title" not in st.session_state:
     st.session_state.title = "例題 1問目"
 if "question" not in st.session_state:
@@ -114,7 +137,22 @@ if "question" not in st.session_state:
 if "answer" not in st.session_state:
     st.session_state.answer = "Ans. 晴れ時々曇り"
 
-# サイドバー入力欄
+# 背景画像アップロード
+st.sidebar.header("背景画像アップロード")
+uploaded_file = st.sidebar.file_uploader("背景画像を選択してください", type=["jpg", "jpeg", "png"])
+if uploaded_file is not None:
+    image = Image.open(uploaded_file)
+    st.session_state.background_image = image
+
+if st.session_state.background_image is None:
+    st.warning("背景画像をアップロードしてください。")
+    st.stop()
+
+left, center, right = st.columns([1, 2, 1])
+with center:
+    st.image(st.session_state.background_image, caption="背景画像", width=352)
+
+# クイズ入力
 st.sidebar.header("クイズ内容入力")
 title_input = st.sidebar.text_input("タイトル", value=st.session_state.title)
 question_input = st.sidebar.text_input("問題文", value=st.session_state.question)
@@ -125,6 +163,32 @@ if st.sidebar.button("テキストを反映して再描画"):
     st.session_state.question = question_input
     st.session_state.answer = answer_input
 
+
+FONT_LICENSE_URLS = {
+    "Noto Sans": "https://fonts.google.com/noto/specimen/Noto+Sans+JP/license?lang=ja_Jpan",
+    "BIZ UDP ゴシック": "https://fonts.google.com/specimen/BIZ+UDPGothic/license?query=BIZ+UDP&lang=ja_Jpan",
+    "Kosugi Maru": "https://fonts.google.com/specimen/Kosugi+Maru/license?query=Kosugi+Maru&lang=ja_Jpan"
+}
+
+# サイドバー：フォント選択とライセンスリンク
+st.sidebar.header("フォント選択")
+
+selected_font_display_name = st.sidebar.selectbox(
+    "フォントを選択してください",
+    options=list(FONT_OPTIONS.keys()),
+    index=list(FONT_OPTIONS.keys()).index(st.session_state.selected_font_display_name),
+    key="font_dropdown"
+)
+st.session_state.selected_font_display_name = selected_font_display_name
+
+# ライセンスリンク（選択の直下に表示）
+license_url = FONT_LICENSE_URLS[selected_font_display_name]
+st.sidebar.markdown(
+    f'<a href="{license_url}" target="_blank">🔗 このフォントのライセンスを見る</a>',
+    unsafe_allow_html=True
+)
+
+
 # 色設定
 st.sidebar.header("文字色・縁取り色設定")
 col1, col2 = st.sidebar.columns(2)
@@ -132,12 +196,10 @@ with col1:
     title_text_color = st.color_picker('タイトル文字色', '#FFFFFF')
 with col2:
     title_outline_color = st.color_picker('タイトル縁取り色', '#000000')
-
 with col1:
     question_text_color = st.color_picker('問題文文字色', '#FFFFFF')
 with col2:
     question_outline_color = st.color_picker('問題文縁取り色', '#000000')
-
 with col1:
     answer_text_color = st.color_picker('答え文字色', '#FFFF00')
 with col2:
@@ -149,7 +211,7 @@ brightness = st.sidebar.slider("明るさ", 0.0, 2.0, 1.0, 0.05)
 contrast = st.sidebar.slider("コントラスト", 0.0, 2.0, 1.0, 0.05)
 blur = st.sidebar.slider("ぼかし", 0.0, 32.0, 0.0, 1.0)
 
-# 出力画像作成と表示
+# 出力画像
 output_image = create_image(
     st.session_state.background_image,
     brightness,
@@ -159,5 +221,4 @@ output_image = create_image(
     question_text_color, question_outline_color,
     answer_text_color, answer_outline_color
 )
-
 st.image(output_image, caption="Quiz Card")

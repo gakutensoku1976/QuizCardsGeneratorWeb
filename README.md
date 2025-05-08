@@ -26,11 +26,6 @@
 pip install streamlit pillow
 ```
 
-さらに、アプリ内で日本語フォントを使用しています。  
-**ipaexg.ttf** というフォントファイルをソースコードと同じフォルダに配置してください。
-
-（※ `ipaexg.ttf` は [IPAフォント公式サイト](https://moji.or.jp/ipafont/) 等からダウンロード可能です）
-
 ## 使い方
 
 1. コマンドラインでアプリを起動します。
@@ -41,15 +36,19 @@ streamlit run main_app.py
 
 2. サイドバーから背景画像をアップロードします。（jpg / jpeg / png）
 3. タイトル、問題文、答えを入力します。
-4. 文字色・縁取り色、画像の明るさ・コントラスト・ぼかしを調整します。
-5. 自動的にプレビュー画像が更新されます。
-6. 調整後のパラメータを、本体アプリへの設定に活用してください。
-
-## ソース構成
-
-- `main_app.py`：アプリ本体
-- `ipaexg.ttf`（別途準備） ：日本語用 TrueType フォント
+4. フォントを選択します。
+5. 文字色・縁取り色、画像の明るさ・コントラスト・ぼかしを調整します。
+6. 自動的にプレビュー画像が更新されます。
+7. 調整後のパラメータを、本体アプリへの設定に活用してください。
 
 ## ライセンス
 
 このプロジェクトは MIT ライセンスのもとで公開されています。  
+
+## フォントライセンス情報
+
+本アプリでは、[Open Font License.](https://openfontlicense.org/)で公開されているフォントを同梱しています。
+
+- [Noto Sans Japanese](https://fonts.google.com/noto/specimen/Noto+Sans+JP/license?lang=ja_Jpan)
+- [BIZ UDPGothic](https://fonts.google.com/specimen/BIZ+UDPGothic/license?query=BIZ+UDP&lang=ja_Jpan)
+- [Kosugi Maru](https://fonts.google.com/specimen/Kosugi+Maru/license?query=Kosugi+Maru&lang=ja_Jpan)
