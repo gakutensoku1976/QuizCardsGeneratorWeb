@@ -34,17 +34,7 @@ def wrap_text_japanese(text, font, max_width, draw):
     return lines
 
 
-def draw_multiline(
-    draw,
-    text,
-    font,
-    area_top,
-    area_height,
-    x_margin,
-    max_width,
-    fill,
-    outline_fill=None,
-):
+def draw_multiline(draw, text, font, area_top, area_height, x_margin, max_width, fill, outline_fill=None):
     line_spacing_ratio = 1.4
     lines = wrap_text_japanese(text, font, max_width, draw)
     base_line_height = font.getbbox("あ")[3]
@@ -57,14 +47,8 @@ def draw_multiline(
         x = x_margin
         if outline_fill:
             offsets = [
-                (-1, 0),
-                (1, 0),
-                (0, -1),
-                (0, 1),
-                (-1, -1),
-                (-1, 1),
-                (1, -1),
-                (1, 1),
+                (-1, 0), (1, 0), (0, -1), (0, 1),
+                (-1, -1), (-1, 1), (1, -1), (1, 1)
             ]
             for dx, dy in offsets:
                 draw.text((x + dx, y + dy), line, font=font, fill=outline_fill)
@@ -169,9 +153,7 @@ if "answer" not in st.session_state:
 
 # 背景画像アップロード
 st.sidebar.header("背景画像アップロード")
-uploaded_file = st.sidebar.file_uploader(
-    "背景画像を選択してください", type=["jpg", "jpeg", "png"]
-)
+uploaded_file = st.sidebar.file_uploader("背景画像を選択してください", type=["jpg", "jpeg", "png"])
 if uploaded_file is not None:
     image = Image.open(uploaded_file)
     st.session_state.background_image = image
@@ -184,6 +166,7 @@ left, center, right = st.columns([1, 2, 1])
 with center:
     st.image(st.session_state.background_image, caption="背景画像", width=352)
 
+st.sidebar.markdown("---")
 
 # クイズ内容入力
 st.sidebar.header("クイズ内容入力")
@@ -196,6 +179,7 @@ if st.sidebar.button("テキストを反映して再描画"):
     st.session_state.question = question_input
     st.session_state.answer = answer_input
 
+st.sidebar.markdown("---")
 
 # フォント選択とライセンスリンク
 st.sidebar.header("フォント選択")
@@ -214,27 +198,41 @@ st.sidebar.markdown(
     unsafe_allow_html=True,
 )
 
+st.sidebar.markdown("---")
+
 # フォントサイズ設定
 st.sidebar.header("フォントサイズ設定")
 title_size = st.sidebar.slider("タイトル", 10, 100, 42)
 question_size = st.sidebar.slider("問題文", 10, 100, 36)
 answer_size = st.sidebar.slider("答え", 10, 100, 36)
 
-# 色設定
-st.sidebar.header("文字色・縁取り色設定")
-col1, col2 = st.sidebar.columns(2)
+st.sidebar.markdown("---")
+
+st.sidebar.header("文字色")
+col1, col2, col3 = st.sidebar.columns(3)
+
 with col1:
-    title_text_color = st.color_picker("タイトル文字色", "#FFFFFF")
+    title_text_color = st.color_picker("タイトル", "#FFFFFF")
 with col2:
-    title_outline_color = st.color_picker("タイトル縁取り色", "#000000")
+    question_text_color = st.color_picker("問題文", "#FFFFFF")
+with col3:
+    answer_text_color = st.color_picker("答え", "#FFFF00")
+
+# 色設定とアウトラインON/OFF
+st.sidebar.header("縁取り")
+col1, col2, col3 = st.sidebar.columns(3)
+
 with col1:
-    question_text_color = st.color_picker("問題文文字色", "#FFFFFF")
+    title_use_outline = st.checkbox("タイトル", value=False)
+    title_outline_color = st.color_picker("タイトル縁取り色", "#000000") if title_use_outline else None
 with col2:
-    question_outline_color = st.color_picker("問題文縁取り色", "#000000")
-with col1:
-    answer_text_color = st.color_picker("答え文字色", "#FFFF00")
-with col2:
-    answer_outline_color = st.color_picker("答え縁取り色", "#000000")
+    question_use_outline = st.checkbox("問題文", value=False)
+    question_outline_color = st.color_picker("問題文縁取り色", "#000000") if question_use_outline else None
+with col3:
+    answer_use_outline = st.checkbox("答え", value=False)
+    answer_outline_color = st.color_picker("答え縁取り色", "#000000") if answer_use_outline else None
+
+st.sidebar.markdown("---")
 
 # 画像調整
 st.sidebar.header("画像調整")
